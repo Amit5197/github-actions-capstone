@@ -6,16 +6,15 @@ on:
   workflow_dispatch:
 
 jobs:
-
   health-check:
     runs-on: ubuntu-latest
     
     steps:
-
       - name: Docker login
         uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKER_USERNAME }}
+          # FIX: Changed from vars to secrets to match your repository settings
+          username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
       
       - name: Pull latest docker image
@@ -37,13 +36,13 @@ jobs:
           fi
         
       - name: Stop & Remove
+        if: always() # Ensures cleanup runs even if the health check fails
         run: docker stop $(docker ps -q) && docker rm $(docker ps -aq)
 
       - name: summary
-        if: steps.check.outcome == 'success'
+        if: always() && steps.check.outcome == 'success'
         run: |
           echo "## Health Check Report" >> $GITHUB_STEP_SUMMARY
           echo "- Image: my-app:latest" >> $GITHUB_STEP_SUMMARY
           echo "- Status: PASSED" >> $GITHUB_STEP_SUMMARY
           echo "- Time: $(date)" >> $GITHUB_STEP_SUMMARY
-        
