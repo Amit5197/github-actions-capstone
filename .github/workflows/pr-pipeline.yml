@@ -17,7 +17,7 @@ jobs:
     with:
       run_tests: true
 
-   dependency-check:
+  dependency-check:
     needs: build-test
     runs-on: ubuntu-latest
     # This line ensures it only runs during an actual pull request event
