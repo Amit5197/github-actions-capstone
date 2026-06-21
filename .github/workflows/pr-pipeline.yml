@@ -17,12 +17,11 @@ jobs:
     with:
       run_tests: true
 
-  dependency-check:
-
+   dependency-check:
     needs: build-test
     runs-on: ubuntu-latest
-    if: always() && needs.build-test.result == 'success'
-
+    # This line ensures it only runs during an actual pull request event
+    if: github.event_name == 'pull_request'
     steps:
       - name: Check Dependencies for Vulnerabilities
         uses: actions/dependency-review-action@v4
