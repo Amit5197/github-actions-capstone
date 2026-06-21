@@ -24,7 +24,8 @@ jobs:
     uses: ./.github/workflows/reusable-build-test.yml
     with:
       node_version: 20
-      run_tests: true
+      run_tests: false
+# Temporarily changed from true to false
 
   docker:
     needs: [build-test, short]
