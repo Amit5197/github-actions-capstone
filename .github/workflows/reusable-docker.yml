@@ -25,16 +25,17 @@ jobs:
     outputs:
       url: ${{ steps.set-url.outputs.url }}
     steps:
+      # CHANGE 1: Swapped actions/checkout@v4 to full SHA
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      # 1. Set up Docker Buildx (Highly Recommended for reliable builds)
+      # CHANGE 2: Swapped docker/setup-buildx-action@v3 to full SHA
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@b5ca514318a742a1855737f099bb2c762c330c1e
 
-      # 2. Authenticate to Docker Hub once
+      # CHANGE 3: Swapped docker/login-action@v3 to full SHA
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
@@ -51,9 +52,9 @@ jobs:
           echo "$FORMATTED_TAGS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # 4. Build and Push ALL tags simultaneously in a single step
+      # CHANGE 4: Swapped docker/build-push-action@v5 to full SHA
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca0597ba7da1d230228b1a4114c45082202246d5
         with:
           context: .
           no-cache: true
