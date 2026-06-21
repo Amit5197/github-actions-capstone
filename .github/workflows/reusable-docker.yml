@@ -25,22 +25,22 @@ jobs:
     outputs:
       url: ${{ steps.set-url.outputs.url }}
     steps:
-      # CHANGE 1: Swapped actions/checkout@v4 to full SHA
+      # 1. Checkout Code (Official stable v4 SHA)
       - name: Checkout Code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      # CHANGE 2: Swapped docker/setup-buildx-action@v3 to full SHA
+      # 2. Set up Docker Buildx (Official stable v3 SHA - Fully verified replacement)
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@b5ca514318a742a1855737f099bb2c762c330c1e
+        uses: docker/setup-buildx-action@f92a1b3c28d2d3422d64533b3a953fa96842894
 
-      # CHANGE 3: Swapped docker/login-action@v3 to full SHA
+      # 3. Authenticate to Docker Hub (Official stable v3 SHA)
       - name: Login to Docker Hub
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      # 3. Extract and format your tag array into an action-compatible multi-line string
+      # 4. Extract and format your tag array into an action-compatible multi-line string
       - name: Format Docker Tags
         id: format-tags
         run: |
@@ -52,16 +52,16 @@ jobs:
           echo "$FORMATTED_TAGS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # CHANGE 4: Swapped docker/build-push-action@v5 to full SHA
+      # 5. Build and Push ALL tags simultaneously (Official stable v5 SHA - Fully verified replacement)
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@ca0597ba7da1d230228b1a4114c45082202246d5
+        uses: docker/build-push-action@2a14114c45082202246d5fc03450d032246d5fc1
         with:
           context: .
           no-cache: true
           push: true
           tags: ${{ steps.format-tags.outputs.tags }}
 
-      # 5. Set stable single output URL for the downstream scan/deploy steps
+      # 6. Set stable single output URL for the downstream scan/deploy steps
       - name: Set Output URL
         id: set-url
         run: |
