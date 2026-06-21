@@ -37,17 +37,18 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
 
-  scan:
+scan:
     needs: [docker, short]
     runs-on: ubuntu-latest
     steps:
       - name: Scan Docker Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@master # Updated version reference
         with:
-          image-ref: '${{ secrets.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
+          image-ref: 'your-username/your-app:latest' # Updated testing reference target
           format: 'table'
-          exit-code: '0' # CHANGED FROM '1' TO '0' (Will not break the build)
+          exit-code: '1' # Changed to '1' (Will break the build on finding matches)
           severity: 'CRITICAL,HIGH'
+        
         env:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db
           TRIVY_NO_PROGRESS: "true"
