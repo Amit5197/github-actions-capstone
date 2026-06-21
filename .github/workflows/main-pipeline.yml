@@ -10,6 +10,7 @@ permissions:
   security-events: write
 
 jobs:
+  
   short:
     runs-on: ubuntu-latest
     outputs:
@@ -24,8 +25,7 @@ jobs:
     uses: ./.github/workflows/reusable-build-test.yml
     with:
       node_version: 20
-      run_tests: false
-# Temporarily changed from true to false
+      run_tests: true
 
   docker:
     needs: [build-test, short]
@@ -33,30 +33,42 @@ jobs:
     with:
       image_name: "my-app"
       tags: '["latest", "sha-${{ needs.short.outputs.SHORT_SHA }}"]'
-    secrets: inherit # Automatically passes DOCKERHUB_USERNAME and DOCKERHUB_TOKEN down
+    secrets:
+      DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
 
   scan:
     needs: [docker, short]
     runs-on: ubuntu-latest
     steps:
       - name: Scan Docker Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@18f2510ee49f5fcce002447b952458426ef43884
+        uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
+          image-ref: '${{ vars.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
         env:
-          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db # Use a backup DB if rate-limited
           TRIVY_NO_PROGRESS: "true"
-          TRIVY_CACHE_DIR: .trivycache
-
+          TRIVY_CACHE_DIR: .trivycache # Force a fresh directory
       - name: sarif output
-        uses: aquasecurity/trivy-action@18f2510ee49f5fcce002447b952458426ef43884
+        uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
+          image-ref: '${{ vars.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
-
       - name: upload sarif
-        uses: github/codeql-action/upload-sarif@48ab28a6f5db2aed3be6d8e0518ab93297a9255f
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+  deploy:
+    needs: [docker, scan]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      
+      - name: print
+        run: |
+          echo "Deploying image: ${{ needs.docker.outputs.image_url }} to production"
+   
