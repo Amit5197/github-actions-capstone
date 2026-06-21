@@ -10,7 +10,6 @@ permissions:
   security-events: write
 
 jobs:
-  
   short:
     runs-on: ubuntu-latest
     outputs:
@@ -34,7 +33,8 @@ jobs:
       image_name: "my-app"
       tags: '["latest", "sha-${{ needs.short.outputs.SHORT_SHA }}"]'
     secrets:
-      DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+      # FIX: Passing both credentials via secrets context evaluates reliably
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
 
   scan:
@@ -44,31 +44,30 @@ jobs:
       - name: Scan Docker Image for Vulnerabilities
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: '${{ vars.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
         env:
-          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db # Use a backup DB if rate-limited
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db
           TRIVY_NO_PROGRESS: "true"
-          TRIVY_CACHE_DIR: .trivycache # Force a fresh directory
+          TRIVY_CACHE_DIR: .trivycache
       - name: sarif output
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ vars.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
       - name: upload sarif
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
+
   deploy:
     needs: [docker, scan]
     runs-on: ubuntu-latest
     environment: production
     steps:
-      
       - name: print
         run: |
           echo "Deploying image: ${{ needs.docker.outputs.image_url }} to production"
-   
