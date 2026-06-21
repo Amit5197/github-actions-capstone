@@ -2,44 +2,37 @@ name: reusable docker
 
 on:
   workflow_call:
-
     inputs:
-
       image_name: 
         type: string
         required: true
-
       tags:
         type: string
         required: false
         
     outputs:
-      
       image_url:
         value: ${{ jobs.build.outputs.url }}
 
     secrets:
-     
       DOCKER_USERNAME:
         required: true
       DOCKER_TOKEN:
         required: true
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     outputs:
-      url: ${{ steps.set-url.outputs.url}}
+      url: ${{ steps.set-url.outputs.url }}
     strategy:
       matrix:
-        tag: ${{ fromJSON(inputs.tags) }} # This converts the string back into a list
+        tag: ${{ fromJSON(inputs.tags) }}
     steps:
-
       - name: checkout
         uses: actions/checkout@v5
 
-      - name: login to doker hub
+      - name: login to docker hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -57,4 +50,4 @@ jobs:
 
       - name: output
         id: set-url
-        run: echo "url=${{ inputs.image_name }}:${{ matrix.tag }}" >> "$GITHUB_OUTPUT"
+        run: echo "url=${{ secrets.DOCKER_USERNAME }}/${{ inputs.image_name }}:${{ matrix.tag }}" >> "$GITHUB_OUTPUT"
