@@ -8,7 +8,7 @@ This repository accompanies the **[Build a Node.js and React app with npm](https
 
 | Pull Request Pipeline | Main Branch Pipeline | Automated Health Check |
 | :--- | :--- | :--- |
-| [![pr pipeline](https://github.com/Afroz-J-Shaikh/github-actions-capstone/actions/workflows/pr-pipeline.yml/badge.svg?branch=feature&event=pull_request)](https://github.com/Afroz-J-Shaikh/github-actions-capstone/actions/workflows/pr-pipeline.yml) | [![main pipeline](https://github.com/Afroz-J-Shaikh/github-actions-capstone/actions/workflows/main-pipeline.yml/badge.svg)](https://github.com/Afroz-J-Shaikh/github-actions-capstone/actions/workflows/main-pipeline.yml) | [![health checkout](https://github.com/Afroz-J-Shaikh/github-actions-capstone/actions/workflows/health-check.yml/badge.svg)](https://github.com/Afroz-J-Shaikh/github-actions-capstone/actions/workflows/health-check.yml) |
+| [![pr pipeline](https://github.com/Amit5197/github-actions-capstone/actions/workflows/pr-pipeline.yml/badge.svg?branch=feature&event=pull_request)](https://github.com/Amit5197/github-actions-capstone/actions/workflows/pr-pipeline.yml) | [![main pipeline](https://github.com/Amit5197/github-actions-capstone/actions/workflows/main-pipeline.yml/badge.svg)](https://github.com/Amit5197/github-actions-capstone/actions/workflows/main-pipeline.yml) | [![health checkout](https://github.com/Amit5197/github-actions-capstone/actions/workflows/health-check.yml/badge.svg)](https://github.com/Amit5197/github-actions-capstone/actions/workflows/health-check.yml) |
 
 ---
 
