@@ -40,26 +40,41 @@ jobs:
     needs: [docker, short]
     runs-on: ubuntu-latest
     steps:
-      - name: Scan Docker Image for Vulnerabilities
+      # 🔐 Step 1: Log in so Trivy can pull from your private/rate-limited registry
+      - name: Log in to Docker Hub Securely
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # 📊 Step 2: Run the scan to generate the readable Table Output (Fails build if vulnerabilities are found)
+      - name: Scan Docker Image for Vulnerabilities (Table)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
           format: 'table'
-          exit-code: '1'
+          exit-code: '1' # Breaks the build if CRITICAL or HIGH vulnerabilities are found
           severity: 'CRITICAL,HIGH'
         env:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db
           TRIVY_NO_PROGRESS: "true"
-          TRIVY_CACHE_DIR: .trivycache
 
-      - name: sarif output
+      # 📁 Step 3: Generate SARIF file for GitHub Security Tab Integration
+      - name: Generate SARIF Output
+        if: always() # Ensures report generation runs even if the previous step found vulnerabilities
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          exit-code: '0' # Don't break here, let the upload finish
+        env:
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db
+          TRIVY_NO_PROGRESS: "true"
 
+      # 🚀 Step 4: Upload results to GitHub Code Scanning dashboard
       - name: upload sarif
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
