@@ -1,0 +1,48 @@
+name: reusable build-test
+
+on:
+  workflow_call:
+
+    inputs:
+      
+      node_version:
+        type: string
+        default: '20'
+        required: false
+
+      run_tests:
+        type: boolean
+        default: true
+
+    outputs:
+
+      test_result:
+        value: ${{ jobs.test.outputs.result }}
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+
+    outputs:
+      result: ${{ steps.set-result.outcome }}
+
+    steps:
+
+      - name: code checkout
+        uses: actions/checkout@v5
+
+      - name: setup environment
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: install dependencies
+        run: npm install
+    
+      - if: ${{ inputs.run_tests }}
+        name: run tests
+        id: set-result
+        run: npm test
+
+    
