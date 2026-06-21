@@ -1,33 +1,48 @@
-name: reusable build and test
+name: reusable build-test
 
 on:
   workflow_call:
+
     inputs:
+      
       node_version:
-        type: number
-        required: true
+        type: string
+        default: '20'
+        required: false
+
       run_tests:
         type: boolean
-        required: true
+        default: true
+
+    outputs:
+
+      test_result:
+        value: ${{ jobs.test.outputs.result }}
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
-    steps:
-      # Official actions/checkout v4.2.2 SHA
-      - name: Checkout Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      # Official actions/setup-node v4.4.0 SHA 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+    outputs:
+      result: ${{ steps.set-result.outcome }}
+
+    steps:
+
+      - name: code checkout
+        uses: actions/checkout@v5
+
+      - name: setup environment
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ inputs.node_version }}
-          cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Run Tests
-        if: ${{ inputs.run_tests }}
+      - name: install dependencies
+        run: npm install
+    
+      - if: ${{ inputs.run_tests }}
+        name: run tests
+        id: set-result
         run: npm test
+
+    
