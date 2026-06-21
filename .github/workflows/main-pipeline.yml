@@ -33,46 +33,42 @@ jobs:
     with:
       image_name: "my-app"
       tags: '["latest", "sha-${{ needs.short.outputs.SHORT_SHA }}"]'
-    # FIX 1: Automatically pass down your repository credentials cleanly
-    secrets: inherit
+    secrets:
+      DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
 
   scan:
     needs: [docker, short]
     runs-on: ubuntu-latest
     steps:
-      # FIX 2: Swapped aquasecurity/trivy-action@0.35.0 to verified SHA-pin for security policy compliance
-      # FIX 3: Point image-ref to secrets context instead of vars context
       - name: Scan Docker Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@18f2510ee49f5fcce002447b952458426ef43884
+        uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
+          image-ref: '${{ vars.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
         env:
-          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasecurity/trivy-db # Use a backup DB if rate-limited
           TRIVY_NO_PROGRESS: "true"
-          TRIVY_CACHE_DIR: .trivycache
-
-      # FIX 4: Swapped aquasecurity/trivy-action@master to a fixed SHA-pin
+          TRIVY_CACHE_DIR: .trivycache # Force a fresh directory
       - name: sarif output
-        uses: aquasecurity/trivy-action@18f2510ee49f5fcce002447b952458426ef43884
+        uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
+          image-ref: '${{ vars.DOCKER_USERNAME }}/my-app:sha-${{ needs.short.outputs.SHORT_SHA }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
-
-      # FIX 5: Swapped github/codeql-action/upload-sarif@v3 to standard stable SHA-pin
       - name: upload sarif
-        uses: github/codeql-action/upload-sarif@48ab28a6f5db2aed3be6d8e0518ab93297a9255f
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
-
   deploy:
     needs: [docker, scan]
     runs-on: ubuntu-latest
     environment: production
     steps:
+      
       - name: print
         run: |
           echo "Deploying image: ${{ needs.docker.outputs.image_url }} to production"
+   
