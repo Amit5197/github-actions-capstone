@@ -1,9 +1,9 @@
 name: health checkout
 
 on:
-  schedule:
+  # schedule:
     - cron: '0 */12 * * *'
-  workflow_dispatch:
+  # workflow_dispatch:
 
 jobs:
   health-check:
