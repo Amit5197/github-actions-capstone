@@ -36,7 +36,7 @@ The repository hosts a decoupled, production-ready full-stack ecosystem:
 
 ---
 
-## ⚙️ DevOps & Pipeline Architecture
+## ⚙️ DevSecOps & CI/CD Pipeline Architecture
 
 The workflow is completely automated via GitHub Actions, securing the application from code commit all the way to deployment and continuous monitoring.
 
